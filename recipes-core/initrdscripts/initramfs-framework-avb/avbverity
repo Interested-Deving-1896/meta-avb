@@ -1,0 +1,28 @@
+#!/bin/sh -x
+
+avbverity_enabled() {
+    return 0
+}
+
+avbverity_run() {
+
+    AVB_VERITY_PUBKEY="/etc/avb/avb_pubkey.bin"
+    ROOTDEV="$(readlink -f /dev/disk/by-partlabel/root)"
+    VERITY_DM_NAME="vrootfs"
+
+    if [ -z "${ROOTDEV}" ] || [ ! -b "${ROOTDEV}" ]; then
+        fatal "Unable to find root device with PARTLABEL=root"
+    fi
+
+    if [ ! -f "${AVB_VERITY_PUBKEY}" ]; then
+        fatal "AVB verity key not found: ${AVB_VERITY_PUBKEY}"
+    fi
+
+    dm_table=$(avb_verify --dm-table -d "$ROOTDEV" -k "$AVB_VERITY_PUBKEY") \
+        || fatal "Failed to verify root device with AVB"
+
+    echo "$dm_table" | dmsetup create "$VERITY_DM_NAME" --readonly
+
+    mount -o ro /dev/mapper/"$VERITY_DM_NAME" ${ROOTFS_DIR} \
+        || exit 2
+}

@@ -11,7 +11,7 @@ inherit image_types
 DEPENDS += "avb-utils-native"
 CONVERSIONTYPES += "avbverity"
 
-WICVARS:append = " AVB_SIGN_KEY AVB_ALGORITHM AVB_HASH_ALGORITHM AVB_ROOTHASH_SIG AVB_X509"
+WICVARS:append = " AVB_SIGN_KEY AVB_ALGORITHM AVB_HASH_ALGORITHM AVB_X509"
 
 # Default AVB settings
 AVB_ALGORITHM ?= "SHA256_RSA4096"
@@ -32,14 +32,12 @@ avbverity_setup() {
     IMAGE_IN=$1
     IMAGE_OUT=$2
 
-    if [ ! -f "${AVB_SIGN_KEY}" ]; then
+    if [ ! -f "${AVB_SIGN_KEY}" ] ; then
         bbfatal "AVB sign key not found: ${AVB_SIGN_KEY}"
     fi
 
-    if [ "${AVB_ROOTHASH_SIG}" = "1" ]; then
-        if [ ! -f "${AVB_X509}" ]; then
-            bbfatal "AVB X.509 cert not found: ${AVB_X509}"
-        fi
+    if [ ! -f "${AVB_X509}" ]; then
+        bbfatal "AVB X.509 cert not found: ${AVB_X509}"
     fi
 
     avb_sign \

@@ -1,0 +1,4 @@
+# description: Create an EFI disk image for genericx86*
+part /  --ondisk sda  --part-name boot  --fixed-size 50M    --source bootimg-efi --sourceparams="loader=grub-efi" --active --align 1024
+part /  --ondisk sda  --part-name root  --fixed-size 2048M  --fstype=ext4  --source rootfs-avb-verity  --use-uuid
+bootloader --ptable gpt --configfile=grub.cfg

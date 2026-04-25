@@ -1,0 +1,44 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright 2026 Embetrix Embedded Systems Solutions <ayoub.zaki@embetrix.com>
+# KAS configuration for building a avb enabled images with Yocto Project
+header:
+  version: 11
+machine: "qemux86-64"
+distro: poky
+target:
+  - core-image-minimal
+repos:
+  # It's current revision will be used to perform the build.
+  meta-avb:
+  poky:
+    url: "https://git.yoctoproject.org/git/poky"
+    branch: scarthgap
+    path: "layers"
+    layers:
+      meta:
+      meta-poky:
+      meta-yocto-bsp:
+  meta-openembedded:
+    url: "https://github.com/openembedded/meta-openembedded.git"
+    branch: scarthgap
+    path: "layers/meta-openembedded"
+    layers:
+      meta-oe:
+local_conf_header:
+  standard: |
+    CONF_VERSION = "2"
+    INHERIT += "rm_work"
+    EXTRA_IMAGE_FEATURES += "debug-tweaks"
+  avb: |
+    IMAGE_CLASSES += "avb-verity"
+    IMAGE_FEATURES += "read-only-rootfs"
+    INHERIT += "avb-verity-keys"
+    INITRAMFS_IMAGE        = "avb-verity-image-initramfs"
+    INITRAMFS_IMAGE_NAME   = "avb-verity-image-initramfs-${MACHINE}"
+    INITRAMFS_IMAGE_BUNDLE = "1"
+  qemux86-64: |    
+    MACHINE_FEATURES:qemux86-64 += "efi"
+    EFI_PROVIDER:qemux86-64 = "grub-efi"
+    MACHINE_EXTRA_RRECOMMENDS:qemux86-64 += "ovmf"
+    IMAGE_FSTYPES += "wic wic.bmap"
+    WKS_FILES:qemux86-64 = "avb-x86-64.wks"

@@ -37,7 +37,7 @@ logger = logging.getLogger('wic')
 
 class AVBVerityPlugin(SourcePlugin):
 
-    name = 'avb-verity'
+    name = 'rootfs-avb-verity'
 
     @staticmethod
     def __get_rootfs_dir(rootfs_dir):
@@ -168,8 +168,13 @@ class AVBVerityPlugin(SourcePlugin):
         part.mkfs_extraopts = orig_mkfs_extraopts
 
         rootfs_img = part.source_file
+        img_size = os.path.getsize(rootfs_img)
+        aligned_size = (img_size + 4095) & ~4095
+        if aligned_size != img_size:
+            with open(rootfs_img, 'ab') as f:
+                f.truncate(aligned_size)
         logger.info("Rootfs image for avb-verity: %s (size %d bytes)"
-                    % (rootfs_img, os.path.getsize(rootfs_img)))
+                    % (rootfs_img, aligned_size))
 
         # append AVB hashtree footer
         sign_key = get_bitbake_var("AVB_SIGN_KEY")
