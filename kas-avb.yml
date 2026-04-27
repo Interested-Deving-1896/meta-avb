@@ -35,12 +35,15 @@ local_conf_header:
     INHERIT += "avb-verity-keys"
     INITRAMFS_IMAGE        = "avb-verity-image-initramfs"
     INITRAMFS_IMAGE_NAME   = "avb-verity-image-initramfs-${MACHINE}"
-  qemux86-64: |    
+    IMAGE_FSTYPES += "ext4.avbverity wic wic.bmap"
+  qemux86-64: |
     MACHINE_FEATURES:qemux86-64 += "efi"
     EFI_PROVIDER:qemux86-64 = "grub-efi"
     MACHINE_EXTRA_RRECOMMENDS:qemux86-64 += "ovmf"
-    IMAGE_FSTYPES += "ext4.avbverity wic wic.bmap"
     WKS_FILES:qemux86-64 = "avb-x86-64.wks"
     AVB_DATA_DEV:qemux86-64 = "/dev/vda"
-    AVB_HASH_DEV:qemux86-64 = "/dev/vda"
     QB_DEFAULT_FSTYPE:qemux86-64 = "ext4.avbverity"
+  beaglebone-yocto: |
+    WKS_FILES:beaglebone-yocto = "avb-beaglebone-yocto.wks"
+    AVB_DATA_DEV:beaglebone-yocto = "/dev/mmcblk0p2"
+    INITRAMFS_IMAGE_BUNDLE = "1"

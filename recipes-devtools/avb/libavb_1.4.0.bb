@@ -8,12 +8,10 @@ require avb.inc
 
 SRC_URI += "file://libavb.pc.in"
 
-CFLAGS += "-DAVB_COMPILATION"
-
 do_compile() {
     for src in ${S}/libavb/*.c ${S}/libavb/crypto/*.c; do
         obj=$(basename ${src} .c).o
-        ${CC} ${CFLAGS} -fPIC -I${S}/libavb -I${S}/libavb/crypto -c ${src} -o ${B}/${obj}
+        ${CC} ${CFLAGS} -DAVB_COMPILATION -fPIC -I${S}/libavb -I${S}/libavb/crypto -c ${src} -o ${B}/${obj}
     done
 
     ${CC} ${LDFLAGS} -shared -Wl,-soname,libavb.so.${PV%%.*} -o ${B}/libavb.so.${PV} ${B}/*.o

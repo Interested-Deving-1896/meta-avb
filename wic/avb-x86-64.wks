@@ -1,4 +1,6 @@
-# description: Create an EFI disk image for genericx86*
-part /  --ondisk sda  --part-name boot  --fixed-size  100M  --source bootimg-efi --sourceparams="loader=grub-efi,initrd=avb-verity-image-initramfs-qemux86-64.cpio.gz" --active --align 1024
-part /  --ondisk sda  --part-name root  --fixed-size 2048M  --source rootfs-avb-verity --fstype=ext4
+# short-description: Create an AVB dm-verity EFI disk image for qemux86-64
+# long-description: Creates a GPT disk image with an EFI boot partition
+# and an AVB dm-verity protected rootfs partition for qemux86-64.
+part /  --ondisk sda  --label boot  --fixed-size  100M  --source bootimg-efi --sourceparams="loader=grub-efi,initrd=avb-verity-image-initramfs-qemux86-64.cpio.gz" --active --align 1024
+part /  --ondisk sda  --label root  --fixed-size 2048M  --source rootfs-avb-verity --fstype=ext4
 bootloader --ptable gpt --configfile=grub.cfg

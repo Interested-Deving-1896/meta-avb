@@ -1,11 +1,12 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: MIT
 # Copyright (C) 2026 Embetrix Embedded Systems Solutions <ayoub.zaki@embetrix.com>
 #
 # Ephemeral signing key generation:
-# If the expected AVB signing keys are missing
+# If the expected AVB signing keys are missing, generate them
+# under a fixed path in TMPDIR.
 #
 
-AVB_KEYS_DIR ?= "${TOPDIR}/../avb-keys"
+AVB_KEYS_DIR ?= "${TMPDIR}/avb-keys"
 AVB_SIGN_KEY ?= "${AVB_KEYS_DIR}/privkey_avb.pem"
 AVB_X509     ?= "${AVB_KEYS_DIR}/x509_avb.pem"
 
@@ -29,7 +30,6 @@ python avb_check_signing_keys() {
     if not missing:
         return
 
-    bb.warn("Dev build: generating temporary signing keys.")
     for name, path, ktype in missing:
         if not path:
             bb.fatal("%s is not set" % name)
@@ -38,7 +38,8 @@ python avb_check_signing_keys() {
             _gen_privkey(path, ktype)
         else:
             _gen_cert(name, path, keys, ktype)
-        bb.warn("  Generated %s" % path)
+
+    bb.warn("Dev build: generated ephemeral signing keys:\n  AVB_SIGN_KEY = %s\n  AVB_X509 = %s" % (d.getVar('AVB_SIGN_KEY'), d.getVar('AVB_X509')))
 }
 
 def _gen_privkey(path, ktype):

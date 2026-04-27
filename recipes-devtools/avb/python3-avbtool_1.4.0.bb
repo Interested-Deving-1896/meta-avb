@@ -1,5 +1,5 @@
 SUMMARY = "Android Verified Boot 2.0 tool"
-DESCRIPTION = "avbtool is the command-line tool for generating vbmeta images, \
+DESCRIPTION = "avbtool is the python3 command-line tool for generating vbmeta images, \
 signing boot images and managing AVB metadata for Android Verified Boot"
 SECTION = "devel"
 LICENSE = "MIT"

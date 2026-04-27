@@ -168,12 +168,11 @@ KAS_MACHINE=qemux86-64 kas shell kas-avb.yml \
     -c 'runqemu wic ovmf kvm serialstdio nographic snapshot qemuparams="-m 1024"'
 ```
 
-Boot with kernel cmdline (no initramfs, dm-mod.create with inline signature):
+Boot with kernel cmdline (no initramfs, dm-mod.create with optional inline signature):
 
 ```
 KAS_MACHINE=qemux86-64 kas shell kas-avb.yml \
     -c 'runqemu kvm serialstdio nographic snapshot qemuparams="-m 1024" \
         bootparams="$(cat tmp/deploy/images/qemux86-64/cmdline.verity)"'
 ```
-
 

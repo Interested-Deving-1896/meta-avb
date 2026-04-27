@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: MIT
 # Copyright (C) 2026 Embetrix Embedded Systems Solutions <ayoub.zaki@embetrix.com>
 #
 # AVB/DM-Verity support:
@@ -8,7 +8,7 @@
 #   for it and set up dm-verity via dmsetup at runtime.
 inherit image_types
 
-DEPENDS += "avb-utils-native openssl-native"
+DEPENDS += "avb-utils-native"
 CONVERSIONTYPES += "avbverity"
 
 WICVARS:append = " AVB_SIGN_KEY AVB_ALGORITHM AVB_HASH_ALGORITHM AVB_ROOT_HASH_SIGN AVB_X509"
@@ -28,7 +28,6 @@ AVB_PARTITION_SIZE ?= "0"
 # Block device paths used in the generated dm-verity command line.
 # Override per-machine when the rootfs lives on a different device.
 AVB_DATA_DEV ?= "/dev/mmcblk0p2"
-AVB_HASH_DEV ?= "/dev/mmcblk0p2"
 
 # dm-verity uses 4096-byte data blocks; the filesystem block size
 # must match or the kernel will refuse to mount.
@@ -75,7 +74,7 @@ avbverity_setup() {
 
     # dm table from avb_verify: 0 <sectors> verity <ver> <dev> <dev> <dbs> <hbs> <nblk> <hstart> <alg> <root_hash> <salt> [...]
     # dm-mod.create format: <name>,<uuid>,<minor>,<flags>,<start> <size> <target_type> <target_args>
-    CMDLINE=$(echo "${DM_TABLE}" | awk -v ddev="${AVB_DATA_DEV}" -v hdev="${AVB_HASH_DEV}" -v sigargs="${SIG_ARGS}" '{
+    CMDLINE=$(echo "${DM_TABLE}" | awk -v ddev="${AVB_DATA_DEV}" -v hdev="${AVB_DATA_DEV}" -v sigargs="${SIG_ARGS}" '{
         printf "dm-mod.create=\"verity,,0,ro,0 %s verity %s %s %s %s %s %s %s %s %s %s %s\" root=/dev/dm-0 ro\n",
             $2, $4, ddev, hdev, $7, $8, $9, $10, $11, $12, $13, sigargs
     }')
@@ -83,6 +82,7 @@ avbverity_setup() {
     install -d "${DEPLOY_DIR_IMAGE}"
     printf '%s\n' "${CMDLINE}" > "${DEPLOY_DIR_IMAGE}/cmdline.verity"
     bbnote "Generated ${DEPLOY_DIR_IMAGE}/cmdline.verity"
+
 }
 
 sign_root_hash() {
