@@ -10,7 +10,7 @@ This introduces circular dependencies between the initramfs and rootfs build tas
 can require workarounds like unconditional rebuilds to avoid stale root hashes.
 
 meta-avb takes a different approach: the root hash is stamped into an AVB footer on the
-rootfs image after signing, and `avb_verify` extracts it from the partition at boot.
+rootfs image after signing and `avb_verify` extracts it from the partition at boot.
 The initramfs and rootfs are independently buildable with no cross-dependency.
 
 ## Architecture
@@ -21,7 +21,7 @@ For a detailed description of the AVB tooling and verification flow, see
 
 ### Design
 
-- **AVB footer as single source of truth**  `avbtool` stamps the hashtree, root hash,
+- **AVB footer as single source of truth**  `avbtool` stamps the hashtree, root hash
   and signature directly into the filesystem image footer. No metadata is scattered
   across separate build artifacts.
 - **Runtime hash extraction**  The initramfs calls `avb_verify` at boot to read the
@@ -32,7 +32,7 @@ For a detailed description of the AVB tooling and verification flow, see
   as a hex-encoded DER blob via `dm-mod.create`. The `cmdline.verity` file is generated
   strictly after signing  no build cycle.
 - **Separated concerns**  Image signing (`avb-verity.bbclass`), disk partitioning
-  (`rootfs-avb-verity` WIC plugin), key generation (`avb-verity-keys.bbclass`), and
+  (`rootfs-avb-verity` WIC plugin), key generation (`avb-verity-keys.bbclass`) and
   kernel certificate embedding (`kernel-trusted-keys.bbclass`) are independent and
   individually replaceable.
 
