@@ -15,8 +15,6 @@ S = "${WORKDIR}/git"
 
 inherit cmake pkgconfig
 
-CFLAGS += "-DAVB_COMPILATION"
-
 PACKAGES =+ "${PN}-python"
 
 EXTRA_OECMAKE:class-native = "-DINSTALL_AVB_SIGN=ON"
