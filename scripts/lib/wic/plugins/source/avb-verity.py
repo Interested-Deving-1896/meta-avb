@@ -1,5 +1,5 @@
 #
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: MIT
 # Copyright (C) 2026 Embetrix Embedded Systems Solutions <ayoub.zaki@embetrix.com>
 #
 # DESCRIPTION
@@ -18,7 +18,7 @@
 # Optional bitbake variables:
 #   AVB_ALGORITHM      : signing algorithm (default: SHA256_RSA4096)
 #   AVB_HASH_ALGORITHM : hash algorithm    (default: sha256)
-#
+#   AVB_ROOT_HASH_SIGN : whether to sign the root hash (default: 0)
 #
 
 import logging
