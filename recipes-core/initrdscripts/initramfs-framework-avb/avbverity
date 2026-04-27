@@ -1,6 +1,7 @@
 #!/bin/sh -x
 
 avbverity_enabled() {
+
     return 0
 }
 

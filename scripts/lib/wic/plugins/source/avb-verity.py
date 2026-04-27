@@ -168,13 +168,8 @@ class AVBVerityPlugin(SourcePlugin):
         part.mkfs_extraopts = orig_mkfs_extraopts
 
         rootfs_img = part.source_file
-        img_size = os.path.getsize(rootfs_img)
-        aligned_size = (img_size + 4095) & ~4095
-        if aligned_size != img_size:
-            with open(rootfs_img, 'ab') as f:
-                f.truncate(aligned_size)
         logger.info("Rootfs image for avb-verity: %s (size %d bytes)"
-                    % (rootfs_img, aligned_size))
+                    % (rootfs_img, os.path.getsize(rootfs_img)))
 
         # append AVB hashtree footer
         sign_key = get_bitbake_var("AVB_SIGN_KEY")
@@ -190,19 +185,21 @@ class AVBVerityPlugin(SourcePlugin):
         logger.info("avb-verity: algorithm=%s, partition=%s"
                     % (algorithm, part_name))
 
-        avb_x509 = get_bitbake_var("AVB_X509") or ""
-
         avb_output = os.path.join(cr_workdir, "avb-verity-output.img")
 
         avb_cmd = ("avb_sign "
                    "--image %s "
                    "--output %s "
                    "--key %s "
-                   "--cert %s "
                    "--partition-name %s "
                    "--algorithm %s"
                    % (rootfs_img, avb_output, sign_key,
-                      avb_x509, part_name, algorithm))
+                      part_name, algorithm))
+
+        avb_root_hash_sign = get_bitbake_var("AVB_ROOT_HASH_SIGN") or ""
+        if avb_root_hash_sign == "1":
+            avb_x509 = get_bitbake_var("AVB_X509") or ""
+            avb_cmd += " --cert %s" % avb_x509
 
         _, output = exec_native_cmd(avb_cmd, native_sysroot)
         logger.info("avb_sign output:\n%s" % output)

@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=9d121eb775096c0ba619421933ef0736 \
                     file://avb/LICENSE;md5=b8228f2369d92593f53f0a0685ebd3c0"
 
 SRCREV_FORMAT = "avb-utils_avb"
-SRCREV_avb-utils = "8bc77f443c0ba97856141ad6358cae4bc928e635"
+SRCREV_avb-utils = "8845396be24eecc310d9b3c71312abd7f35a70ed"
 SRCREV_avb = "4a4e2c8a6592b88cf18b10fe5406f53a2a5d26cf"
 
 SRC_URI = " \
