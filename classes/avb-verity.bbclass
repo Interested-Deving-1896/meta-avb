@@ -96,7 +96,7 @@ sign_root_hash() {
     ROOTHASH_SIG="${WORKDIR}/roothash.txt.signed"
     printf '%s' "${ROOT_HASH}" > "${ROOTHASH_FILE}"
 
-    openssl smime -sign -nocerts -noattr -binary \
+    openssl cms -sign -nocerts -noattr -binary \
         -in "${ROOTHASH_FILE}" -inkey "${SIGN_KEY}" -signer "${X509_CERT}" \
         -outform der -out "${ROOTHASH_SIG}"
 
