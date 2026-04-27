@@ -32,6 +32,7 @@ local_conf_header:
   avb: |
     IMAGE_CLASSES += "avb-verity"
     IMAGE_FEATURES += "read-only-rootfs"
+    AVB_ROOT_HASH_SIGN = "1"
     INHERIT += "avb-verity-keys"
     INITRAMFS_IMAGE        = "avb-verity-image-initramfs"
     INITRAMFS_IMAGE_NAME   = "avb-verity-image-initramfs-${MACHINE}"
