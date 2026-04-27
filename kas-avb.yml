@@ -40,10 +40,10 @@ local_conf_header:
     MACHINE_FEATURES:qemux86-64 += "efi"
     EFI_PROVIDER:qemux86-64 = "grub-efi"
     MACHINE_EXTRA_RRECOMMENDS:qemux86-64 += "ovmf"
-    WKS_FILES:qemux86-64 = "avb-x86-64.wks"
+    WKS_FILES:qemux86-64 = "avb-x86-64.wks.in"
     AVB_DATA_DEV:qemux86-64 = "/dev/vda"
     QB_DEFAULT_FSTYPE:qemux86-64 = "ext4.avbverity"
   beaglebone-yocto: |
     WKS_FILES:beaglebone-yocto = "avb-beaglebone-yocto.wks"
     AVB_DATA_DEV:beaglebone-yocto = "/dev/mmcblk0p2"
-    INITRAMFS_IMAGE_BUNDLE = "1"
+    INITRAMFS_IMAGE_BUNDLE:beaglebone-yocto = "1"
