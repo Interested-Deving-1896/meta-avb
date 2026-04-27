@@ -4,29 +4,14 @@ Yocto layer for Android Verified Boot (AVB) and dm-verity on embedded Linux.
 
 ## Overview
 
-meta-avb provides a clean, dependency-free approach to dm-verity rootfs verification
-for Yocto-based systems. It addresses the circular dependency problem found in
-`meta-security`'s dm-verity implementation, where the root hash must be embedded into
-the initramfs or kernel cmdline before the rootfs image is finalized.
+Traditional dm-verity implementations require the root hash to be known at build time
+and embedded into the initramfs or kernel cmdline before the rootfs image is finalized.
+This introduces circular dependencies between the initramfs and rootfs build tasks and
+can require workarounds like unconditional rebuilds to avoid stale root hashes.
 
-### Problem with meta-security's dm-verity implementation
-
-In `meta-security`, `dm-verity-img.bbclass` runs `veritysetup format` on the rootfs
-and writes the root hash to a shared `verity.env` file. The initramfs recipe then
-depends on the rootfs image task to read that file and bake the root hash in at build
-time. This creates a circular dependency:
-
-- The initramfs needs the rootfs hashed (`do_rootfs` depends on the rootfs image task)
-- The rootfs image needs the initramfs bundled or deployed alongside it
-
-To work around stale root hashes caused by BitBake task caching, `meta-security`
-requires `do_rootfs[nostamp] = "1"` on the initramfs recipe, forcing it to rebuild
-unconditionally on every build even when nothing has changed. Without this, BitBake
-may ship an old root hash from a previous build, producing an unbootable system.
-
-meta-avb eliminates both problems: the initramfs never needs the root hash at build
-time, and there is no `nostamp` hack  `avb_verify` reads the hash from the AVB footer
-on the partition at boot.
+meta-avb takes a different approach: the root hash is stamped into an AVB footer on the
+rootfs image after signing, and `avb_verify` extracts it from the partition at boot.
+The initramfs and rootfs are independently buildable with no cross-dependency.
 
 ## Architecture
 
@@ -57,8 +42,8 @@ The layer supports two verification paths:
 
 | Path | Mechanism | Pros |
 |------|-----------|------|
-| **Initramfs** | `avb_verify --dm-table` at boot, sets up dm-verity device | Graceful error handling, no kernel patches required |
-| **Kernel cmdline** | `dm-mod.create` with `root_hash_sig_hex` | No initramfs needed, smaller boot image |
+| **Initramfs** | `avb_verify --dm-table` at boot, sets up dm-verity device | More flexibility |
+| **Kernel cmdline** | `dm-mod.create` with `root_hash_sig_hex` | No initramfs needed |
 
 ### Security Considerations
 
@@ -105,7 +90,7 @@ CONFIG_SYSTEM_TRUSTED_KEYS="trusted_keys.pem"
 ```
 
 The kernel cmdline path also requires the two patches from
-`recipes-kernel/linux/linux-yocto/` to add the `root_hash_sig_hex` dm-verity
+`recipes-kernel/linux/linux-yocto/v6.6/` to add the `root_hash_sig_hex` dm-verity
 parameter and raise the charp parameter length limit. These patches must be
 applied to the vendor kernel tree manually or via a bbappend.
 
@@ -139,24 +124,39 @@ AVB_ROOT_HASH_SIGN = "1"
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `AVB_SIGN_KEY` | Auto-generated dev key | Path to private key (PEM) for AVB signing |
-| `AVB_X509` | Auto-generated dev cert | Path to X.509 certificate for root hash signature |
+| `AVB_KEYS_DIR` | `${TMPDIR}/avb-keys` | Directory for signing keys; ephemeral keys are generated here if missing |
+| `AVB_SIGN_KEY` | `${AVB_KEYS_DIR}/privkey_avb.pem` | Path to private key (PEM) for AVB signing |
+| `AVB_X509` | `${AVB_KEYS_DIR}/x509_avb.pem` | Path to X.509 certificate for root hash signature |
 | `AVB_ALGORITHM` | `SHA256_RSA4096` | AVB signing algorithm |
 | `AVB_HASH_ALGORITHM` | `sha256` | Hash algorithm for dm-verity |
 | `AVB_PARTITION_NAME` | `rootfs` | Partition name embedded in AVB footer |
 | `AVB_PARTITION_SIZE` | `0` (auto) | Partition size in bytes, 0 = fit to image |
-| `AVB_DATA_DEV` | `/dev/mmcblk0p2` | Block device for dm-verity data (kernel cmdline path only) |
-| `AVB_HASH_DEV` | `/dev/mmcblk0p2` | Block device for dm-verity hash (kernel cmdline path only) |
+| `AVB_DATA_DEV` | `/dev/mmcblk0p2` | Block device for dm-verity data and hash (kernel cmdline path only) |
 | `AVB_ROOT_HASH_SIGN` | `0` | Enable PKCS#7 root hash signing and kernel signature verification |
 
 When `AVB_ROOT_HASH_SIGN` is set to `1`, the root hash is signed with the AVB key and
 the X.509 certificate is embedded in the kernel trusted keyring. The kernel patches for
 `root_hash_sig_hex` are also applied. Set to `0` to disable root has signature verification.
 
+## Tested Machines
+
+| Machine | Boot method | Notes |
+|---------|-------------|-------|
+| `qemux86-64` | EFI (GRUB) | Default machine, QEMU emulation |
+| `beaglebone-yocto` | U-Boot | Initramfs bundled into kernel (`INITRAMFS_IMAGE_BUNDLE = "1"`) |
+
 ## Build
 
+### qemux86-64
+
 ```
-KAS_MACHINE=qemux86-64 kas build kas-avb.yml
+kas build kas-avb.yml
+```
+
+### Beaglebone
+
+```
+KAS_MACHINE=beaglebone-yocto kas build kas-avb.yml
 ```
 
 ## Emulation with QEMU
@@ -176,3 +176,10 @@ KAS_MACHINE=qemux86-64 kas shell kas-avb.yml \
         bootparams="$(cat tmp/deploy/images/qemux86-64/cmdline.verity)"'
 ```
 
+## Flashing Beaglebone
+
+Write the WIC image to an SD card:
+
+```
+bmaptool copy tmp/deploy/images/beaglebone-yocto/core-image-minimal-beaglebone-yocto.wic.bmap /dev/sdX
+```
