@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: MIT
 # Copyright 2026 Embetrix Embedded Systems Solutions <ayoub.zaki@embetrix.com>
 # KAS configuration for building a avb enabled images with Yocto Project
 header:
@@ -48,3 +48,5 @@ local_conf_header:
     WKS_FILES:beaglebone-yocto = "avb-beaglebone-yocto.wks"
     AVB_DATA_DEV:beaglebone-yocto = "/dev/mmcblk0p2"
     INITRAMFS_IMAGE_BUNDLE:beaglebone-yocto = "1"
+    IMAGE_BOOT_FILES:remove:beaglebone-yocto = "${KERNEL_IMAGETYPE}"
+    IMAGE_BOOT_FILES:append:beaglebone-yocto = " ${KERNEL_IMAGETYPE}-${INITRAMFS_LINK_NAME}.bin;${KERNEL_IMAGETYPE}"
