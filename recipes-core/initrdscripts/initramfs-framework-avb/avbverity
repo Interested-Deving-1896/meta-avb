@@ -1,14 +1,17 @@
-#!/bin/sh -x
+#!/bin/sh
 
 avbverity_enabled() {
 
+    if grep -q "dm-mod.create=" /proc/cmdline; then
+        return 1
+    fi
     return 0
 }
 
 avbverity_run() {
 
     AVB_VERITY_PUBKEY="/etc/avb/avb_pubkey.bin"
-    cmdline_root="$(cat /proc/cmdline | sed -n 's/.*root=\([^ ]*\).*/\1/p')"
+    cmdline_root="$(sed -n 's/.*root=\([^ ]*\).*/\1/p' /proc/cmdline)"
     case "$cmdline_root" in
         LABEL=*)     ROOTDEV="$(readlink -f /dev/disk/by-label/${cmdline_root#LABEL=})" ;;
         PARTLABEL=*) ROOTDEV="$(readlink -f /dev/disk/by-partlabel/${cmdline_root#PARTLABEL=})" ;;
@@ -32,7 +35,8 @@ avbverity_run() {
     dm_table=$(avb_verify --dm-table -d "$ROOTDEV" -k "$AVB_VERITY_PUBKEY") \
         || fatal "Failed to verify root device with AVB"
 
-    echo "$dm_table" | dmsetup create "$VERITY_DM_NAME" --readonly
+    echo "$dm_table" | dmsetup create "$VERITY_DM_NAME" --readonly \
+        || fatal "dmsetup create failed"
 
     mount -o ro /dev/mapper/"$VERITY_DM_NAME" ${ROOTFS_DIR} \
         || exit 2
