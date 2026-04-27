@@ -1,8 +1,7 @@
-From f6cd474443716f06ba68e629be45dbb3726178c3 Mon Sep 17 00:00:00 2001
+From 1f0f17a209e4f56add9107e1008be7f93cd1f2ee Mon Sep 17 00:00:00 2001
 From: Ayoub Zaki <ayoub.zaki@embetrix.com>
-Date: Sun, 26 Apr 2026 17:49:51 +0200
-Subject: [PATCH] dm verity: add root_hash_sig_hex parameter and
- CONFIG_DM_VERITY_REQUIRE_ROOTHASH_SIG
+Date: Mon, 27 Apr 2026 18:55:08 +0200
+Subject: [PATCH 2/2] dm verity: add root_hash_sig_hex optional parameter
 
 Add support for passing the root hash PKCS#7 signature as a hex-encoded
 DER blob directly on the dm-verity table line via a new optional
@@ -15,45 +14,17 @@ The hex string is decoded to binary at table load time and passed to
 verify_pkcs7_signature() the same way the existing
 root_hash_sig_key_desc path does.
 
-Also add CONFIG_DM_VERITY_REQUIRE_ROOTHASH_SIG Kconfig option.  When
-enabled, root hash signature verification is mandatory and cannot be
-bypassed.  When disabled, the existing require_signatures module
-parameter controls enforcement.
-
 Reference: https://www.lynx.com/blog/dm-verity-without-an-initramfs/
 
 Upstream-Status: Inappropriate
 
 Signed-off-by: Ayoub Zaki <ayoub.zaki@embetrix.com>
 ---
- drivers/md/Kconfig                | 11 +++++
- drivers/md/dm-verity-target.c     | 11 +++++
- drivers/md/dm-verity-verify-sig.c | 68 +++++++++++++++++++++++++++++--
- drivers/md/dm-verity-verify-sig.h | 17 +++++++-
- 4 files changed, 103 insertions(+), 4 deletions(-)
+ drivers/md/dm-verity-target.c     | 11 ++++++
+ drivers/md/dm-verity-verify-sig.c | 60 +++++++++++++++++++++++++++++++
+ drivers/md/dm-verity-verify-sig.h | 17 ++++++++-
+ 3 files changed, 87 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/md/Kconfig b/drivers/md/Kconfig
-index 3ff87cb4dc49..f4b01f1a47d0 100644
---- a/drivers/md/Kconfig
-+++ b/drivers/md/Kconfig
-@@ -575,6 +575,17 @@ config DM_VERITY_VERIFY_ROOTHASH_SIG_SECONDARY_KEYRING
- 
- 	  If unsure, say N.
- 
-+config DM_VERITY_REQUIRE_ROOTHASH_SIG
-+	bool "Require root hash signature verification"
-+	depends on DM_VERITY_VERIFY_ROOTHASH_SIG
-+	help
-+	  If enabled, dm-verity always requires a valid root hash
-+	  signature and the require_signatures module parameter is
-+	  removed.  If disabled, enforcement is controlled at runtime
-+	  via the require_signatures module parameter (default off).
-+
-+	  If unsure, say N.
-+
- config DM_VERITY_FEC
- 	bool "Verity forward error correction support"
- 	depends on DM_VERITY
 diff --git a/drivers/md/dm-verity-target.c b/drivers/md/dm-verity-target.c
 index 60e74c0e02f1..d5d75e786bda 100644
 --- a/drivers/md/dm-verity-target.c
@@ -77,29 +48,10 @@ index 60e74c0e02f1..d5d75e786bda 100644
  			/*
  			 * Ignore unrecognized opt, could easily be an extra
 diff --git a/drivers/md/dm-verity-verify-sig.c b/drivers/md/dm-verity-verify-sig.c
-index 1ced2ef255f3..d6d26d95701e 100644
+index 2d397cbb8c5c..d6d26d95701e 100644
 --- a/drivers/md/dm-verity-verify-sig.c
 +++ b/drivers/md/dm-verity-verify-sig.c
-@@ -14,13 +14,15 @@
- 
- #define DM_VERITY_VERIFY_ERR(s) DM_VERITY_ROOT_HASH_VERIFICATION " " s
- 
-+#ifdef CONFIG_DM_VERITY_REQUIRE_ROOTHASH_SIG
-+#define DM_VERITY_IS_SIG_FORCE_ENABLED() (true)
-+#else
- static bool require_signatures;
- module_param(require_signatures, bool, 0444);
- MODULE_PARM_DESC(require_signatures,
- 		"Verify the roothash of dm-verity hash tree");
--
--#define DM_VERITY_IS_SIG_FORCE_ENABLED() \
--	(require_signatures != false)
-+#define DM_VERITY_IS_SIG_FORCE_ENABLED() (require_signatures != false)
-+#endif
- 
- bool verity_verify_is_sig_opt_arg(const char *arg_name)
- {
-@@ -28,6 +30,12 @@ bool verity_verify_is_sig_opt_arg(const char *arg_name)
+@@ -30,6 +30,12 @@ bool verity_verify_is_sig_opt_arg(const char *arg_name)
  			    DM_VERITY_ROOT_HASH_VERIFICATION_OPT_SIG_KEY));
  }
  
@@ -112,7 +64,7 @@ index 1ced2ef255f3..d6d26d95701e 100644
  static int verity_verify_get_sig_from_key(const char *key_desc,
  					struct dm_verity_sig_opts *sig_opts)
  {
-@@ -102,6 +110,60 @@ int verity_verify_sig_parse_opt_args(struct dm_arg_set *as,
+@@ -104,6 +110,60 @@ int verity_verify_sig_parse_opt_args(struct dm_arg_set *as,
  	return 0;
  }
  
