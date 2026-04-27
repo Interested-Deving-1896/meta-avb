@@ -4,19 +4,19 @@ Yocto layer for Android Verified Boot (AVB) and dm-verity on embedded Linux.
 
 ## Overview
 
-Traditional dm-verity implementations require the root hash to be known at build time
+Traditional `dm-verity` implementations require the root hash to be known at build time
 and embedded into the initramfs or kernel cmdline before the rootfs image is finalized.
 This introduces circular dependencies between the initramfs and rootfs build tasks and
 can require workarounds like unconditional rebuilds to avoid stale root hashes.
 
-meta-avb takes a different approach: the root hash is stamped into an AVB footer on the
+`meta-avb` takes a different approach: the root hash is stamped into an AVB footer on the
 rootfs image after signing and `avb_verify` extracts it from the partition at boot.
 The initramfs and rootfs are independently buildable with no cross-dependency.
 
 ## Architecture
 
-For a detailed description of the AVB tooling and verification flow, see
-[avb-utils](https://github.com/embetrix/avb-utils).
+For a detailed description of the AVB tooling and verification flow:
+see [avb-utils](https://github.com/embetrix/avb-utils).
 
 
 ### Design
