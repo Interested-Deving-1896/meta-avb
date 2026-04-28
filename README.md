@@ -106,6 +106,15 @@ directly.
 | `libavb` | Shared library for AVB verification primitives |
 | `kernel-trusted-keys.bbclass` | Bundles X.509 certificates into the kernel trusted keyring |
 
+## Dependencies
+
+This layer depends on:
+
+- [meta (core)](https://git.yoctoproject.org/poky/log/?h=scarthgap)
+- [meta-oe (openembedded-layer)](https://github.com/openembedded/meta-openembedded/tree/scarthgap)
+
+Compatible with Yocto Project **Scarthgap** release.
+
 ## Configuration
 
 Add the following to your `local.conf` or KAS configuration:
