@@ -59,29 +59,7 @@ avbverity_setup() {
         --partition-name "${AVB_PARTITION_NAME}" \
         --algorithm "${AVB_ALGORITHM}"
 
-    # Extract the AVB public key for host-side verification
-    PUBKEY="${WORKDIR}/avb_pubkey.bin"
-    avbtool extract_public_key --key "${AVB_SIGN_KEY}" --output "${PUBKEY}"
-
-    # Run avb_verify -t on the signed image to get the raw dm table,
-    # then rewrite device paths and emit cmdline.verity to DEPLOY_DIR_IMAGE.
-    DM_TABLE=$(avb_verify -t -d "${IMAGE_OUT}" -k "${PUBKEY}")
-
-    if [ "${AVB_ROOT_HASH_SIGN}" = "1" ]; then
-        SIG_HEX=$(sign_root_hash "${DM_TABLE}" "${AVB_SIGN_KEY}" "${AVB_X509}")
-        SIG_ARGS="2 root_hash_sig_hex ${SIG_HEX}"
-    fi
-
-    # dm table from avb_verify: 0 <sectors> verity <ver> <dev> <dev> <dbs> <hbs> <nblk> <hstart> <alg> <root_hash> <salt> [...]
-    # dm-mod.create format: <name>,<uuid>,<minor>,<flags>,<start> <size> <target_type> <target_args>
-    CMDLINE=$(echo "${DM_TABLE}" | awk -v ddev="${AVB_DATA_DEV}" -v hdev="${AVB_DATA_DEV}" -v sigargs="${SIG_ARGS}" '{
-        printf "dm-mod.create=\"verity,,0,ro,0 %s verity %s %s %s %s %s %s %s %s %s %s %s\" root=/dev/dm-0 ro\n",
-            $2, $4, ddev, hdev, $7, $8, $9, $10, $11, $12, $13, sigargs
-    }')
-
-    install -d "${DEPLOY_DIR_IMAGE}"
-    printf '%s\n' "${CMDLINE}" > "${DEPLOY_DIR_IMAGE}/cmdline.verity"
-    bbnote "Generated ${DEPLOY_DIR_IMAGE}/cmdline.verity"
+    generate_verity_cmdline "${IMAGE_OUT}"
 
 }
 
@@ -101,6 +79,33 @@ sign_root_hash() {
         -outform der -out "${ROOTHASH_SIG}"
 
     od -An -tx1 "${ROOTHASH_SIG}" | tr -d ' \n'
+}
+
+generate_verity_cmdline() {
+
+    IMAGE=$1
+    SIG_ARGS=""
+
+    PUBKEY="${WORKDIR}/avb_pubkey.bin"
+    avbtool extract_public_key --key "${AVB_SIGN_KEY}" --output "${PUBKEY}"
+
+    DM_TABLE=$(avb_verify -t -d "${IMAGE}" -k "${PUBKEY}")
+
+    if [ "${AVB_ROOT_HASH_SIGN}" = "1" ]; then
+        SIG_HEX=$(sign_root_hash "${DM_TABLE}" "${AVB_SIGN_KEY}" "${AVB_X509}")
+        SIG_ARGS="2 root_hash_sig_hex ${SIG_HEX}"
+    fi
+
+    # dm table from avb_verify: 0 <sectors> verity <ver> <dev> <dev> <dbs> <hbs> <nblk> <hstart> <alg> <root_hash> <salt> [...]
+    # dm-mod.create format: <name>,<uuid>,<minor>,<flags>,<start> <size> <target_type> <target_args>
+    CMDLINE=$(echo "${DM_TABLE}" | awk -v ddev="${AVB_DATA_DEV}" -v hdev="${AVB_DATA_DEV}" -v sigargs="${SIG_ARGS}" '{
+        printf "dm-mod.create=\"verity,,0,ro,0 %s verity %s %s %s %s %s %s %s %s %s %s %s\" root=/dev/dm-0 ro\n",
+            $2, $4, ddev, hdev, $7, $8, $9, $10, $11, $12, $13, sigargs
+    }')
+
+    install -d "${DEPLOY_DIR_IMAGE}"
+    printf '%s\n' "${CMDLINE}" > "${DEPLOY_DIR_IMAGE}/cmdline.verity"
+    bbnote "Generated ${DEPLOY_DIR_IMAGE}/cmdline.verity"
 }
 
 CONVERSION_CMD:avbverity = "avbverity_setup ${IMAGE_NAME}.${type} ${IMAGE_NAME}.${type}.avbverity"
