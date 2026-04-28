@@ -1,4 +1,6 @@
 #!/bin/sh
+# Copyright (C) 2026 Embetrix Embedded Systems Solutions <ayoub.zaki@embetrix.com>
+# Licensed on MIT
 
 avbverity_enabled() {
 
