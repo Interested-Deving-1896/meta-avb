@@ -1,6 +1,6 @@
 # short-description: Create an AVB dm-verity EFI disk image
 # long-description: Creates a GPT disk image with an EFI boot partition
 # and an AVB dm-verity protected rootfs partition.
-part /  --ondisk sda  --label boot  --fixed-size  100M  --source bootimg-efi --sourceparams="loader=grub-efi,initrd=${INITRAMFS_IMAGE}-${MACHINE}.cpio.gz" --active --align 1024
+part /boot  --ondisk sda  --label boot  --fixed-size  100M  --source bootimg-efi --sourceparams="loader=grub-efi,initrd=${INITRAMFS_IMAGE}-${MACHINE}.cpio.gz" --active --align 1024
 part /  --ondisk sda  --label root  --fixed-size 2048M  --source rootfs-avb-verity --fstype=ext4
-bootloader --ptable gpt --timeout 2 --append="root=LABEL=root loglevel=7 rw console=ttyS0,115200"
+bootloader --ptable gpt --timeout 2 --append="loglevel=7 rw console=ttyS0,115200"
