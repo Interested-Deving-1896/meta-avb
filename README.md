@@ -21,20 +21,16 @@ see [avb-utils](https://github.com/embetrix/avb-utils).
 
 ### Design
 
-- **AVB footer as single source of truth**  `avbtool` stamps the hashtree, root hash
+- **AVB footer as single source of truth** `avbtool` stamps the hashtree, root hash
   and signature directly into the filesystem image footer. No metadata is scattered
   across separate build artifacts.
-- **Runtime hash extraction**  The initramfs calls `avb_verify` at boot to read the
+- **Runtime hash extraction** The initramfs calls `avb_verify` at boot to read the
   root hash from the AVB footer on disk, verified against a public key. The initramfs
   and rootfs are independently buildable with no circular dependency.
 - **Inline signature on kernel cmdline**  For the initramfs-free path, a kernel patch
   adds `root_hash_sig_hex` to dm-verity, allowing the PKCS#7 signature to be passed
   as a hex-encoded DER blob via `dm-mod.create`. The `cmdline.verity` file is generated
   strictly after signing  no build cycle.
-- **Separated concerns**  Image signing (`avb-verity.bbclass`), disk partitioning
-  (`rootfs-avb-verity` WIC plugin), key generation (`avb-verity-keys.bbclass`) and
-  kernel certificate embedding (`kernel-trusted-keys.bbclass`) are independent and
-  individually replaceable.
 
 ### Boot Paths
 
@@ -42,14 +38,14 @@ The layer supports two verification paths:
 
 | Path | Mechanism | Pros |
 |------|-----------|------|
-| **Initramfs** | `avb_verify --dm-table` at boot, sets up dm-verity device | More flexibility |
+| **Initramfs** | `avb_verify --dm-table` at boot sets up dm-verity device | More flexibility |
 | **Kernel cmdline** | `dm-mod.create` with `root_hash_sig_hex` | No initramfs needed |
 
 ### Security Considerations
 
 dm-verity only protects the rootfs integrity. A complete chain of trust requires
-**Secure Boot** to authenticate the bootloader, kernel, and initramfs before they
-execute. Without it, an attacker can replace the kernel or initramfs and bypass
+**Secure Boot** to authenticate the bootloader, kernel and initramfs before they
+execute. Without it an attacker can replace the kernel or initramfs and bypass
 dm-verity entirely.
 
 For the **initramfs path**, the initramfs must be authenticated. This can be achieved by:
@@ -68,7 +64,7 @@ The `linux-yocto_%.bbappend` applies dm-verity kernel config fragments and patch
 automatically. When using a vendor kernel instead, the following kernel configs must
 be enabled manually:
 
-**Required for dm-verity (both boot paths):**
+Required for dm-verity (both boot paths):
 
 ```
 CONFIG_MD=y
@@ -77,7 +73,7 @@ CONFIG_DM_INIT=y
 CONFIG_DM_VERITY=y
 ```
 
-**Required for root hash signature verification (`AVB_ROOT_HASH_SIGN = "1"`):**
+required for root hash signature verification (`AVB_ROOT_HASH_SIGN = "1"`):
 
 ```
 CONFIG_DM_VERITY_VERIFY_ROOTHASH_SIG=y
@@ -104,12 +100,11 @@ directly.
 |-----------|-------------|
 | `avb-verity.bbclass` | IMAGE_TYPES conversion handler, signs rootfs and emits `cmdline.verity` |
 | `avb-verity-keys.bbclass` | Auto-generates ephemeral dev signing keys on first build |
-| `kernel-trusted-keys.bbclass` | Bundles X.509 certificates into the kernel trusted keyring |
 | `rootfs-avb-verity` WIC plugin | Builds and signs the rootfs partition during image creation |
 | `avb-verity-image-initramfs` | Minimal initramfs with avb_verify, devmapper, and udev |
 | `avb-utils` | CMake-based toolkit wrapping Android AVB for embedded Linux |
 | `libavb` | Shared library for AVB verification primitives |
-| Kernel patches | `root_hash_sig_hex` dm-verity parameter + raised charp limit |
+| `kernel-trusted-keys.bbclass` | Bundles X.509 certificates into the kernel trusted keyring |
 
 ## Configuration
 
@@ -181,5 +176,5 @@ KAS_MACHINE=qemux86-64 kas shell kas-avb.yml \
 Write the WIC image to an SD card:
 
 ```
-bmaptool copy tmp/deploy/images/beaglebone-yocto/core-image-minimal-beaglebone-yocto.wic.bmap /dev/sdX
+bmaptool copy build/tmp/deploy/images/beaglebone-yocto/core-image-minimal-beaglebone-yocto.wic /dev/sdX
 ```
