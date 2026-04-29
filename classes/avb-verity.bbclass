@@ -89,7 +89,7 @@ generate_verity_cmdline() {
     PUBKEY="${WORKDIR}/avb_pubkey.bin"
     avbtool extract_public_key --key "${AVB_SIGN_KEY}" --output "${PUBKEY}"
 
-    DM_TABLE=$(avb_verify -t -d "${IMAGE}" -k "${PUBKEY}")
+    DM_TABLE=$(avb_verify -n -t -d "${IMAGE}" -k "${PUBKEY}")
 
     if [ "${AVB_ROOT_HASH_SIGN}" = "1" ]; then
         SIG_HEX=$(sign_root_hash "${DM_TABLE}" "${AVB_SIGN_KEY}" "${AVB_X509}")
