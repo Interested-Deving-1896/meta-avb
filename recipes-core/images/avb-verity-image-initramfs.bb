@@ -14,7 +14,6 @@ PACKAGE_INSTALL = " \
     libdevmapper \
     initramfs-module-avb-verity \
     initramfs-module-udev \
-    lvm2-udevrules \
     udev \
     util-linux-mount \
     "
