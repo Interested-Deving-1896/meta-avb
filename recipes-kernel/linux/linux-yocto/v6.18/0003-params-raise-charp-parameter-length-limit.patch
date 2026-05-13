@@ -1,9 +1,9 @@
-From 4c9fb2d7d622e6751c485aecc94310cd52e7d936 Mon Sep 17 00:00:00 2001
+From 09c6702f74c8e4c2af700ebc8006c40083ce5b72 Mon Sep 17 00:00:00 2001
 From: Ayoub Zaki <ayoub.zaki@embetrix.com>
 Date: Sun, 26 Apr 2026 17:50:00 +0200
 Subject: [PATCH] params: raise charp parameter length limit to 4096
 
-param_set_charp() hardcodes a 1024-byte cap on charp module parameters.
+param_set_charp() caps charp module parameters at 1024 bytes.
 dm-mod.create with dm-verity root_hash_sig_hex passes a PKCS#7
 signature as hex, which exceeds this limit.  Raise to 4096.
 
@@ -15,18 +15,15 @@ Signed-off-by: Ayoub Zaki <ayoub.zaki@embetrix.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/kernel/params.c b/kernel/params.c
-index e39ac5420cd6..e637031255b8 100644
+index b96cfd693c99..8425f0bf36c6 100644
 --- a/kernel/params.c
 +++ b/kernel/params.c
-@@ -264,7 +264,7 @@ EXPORT_SYMBOL_GPL(param_set_uint_minmax);
- 
+@@ -261,7 +261,7 @@ EXPORT_SYMBOL_GPL(param_set_uint_minmax);
+
  int param_set_charp(const char *val, const struct kernel_param *kp)
  {
--	if (strlen(val) > 1024) {
-+	if (strlen(val) > 4096) {
- 		pr_err("%s: string parameter too long\n", kp->name);
- 		return -ENOSPC;
- 	}
--- 
-2.34.1
+-	size_t len, maxlen = 1024;
++	size_t len, maxlen = 4096;
 
+ 	len = strnlen(val, maxlen + 1);
+ 	if (len == maxlen + 1) {
