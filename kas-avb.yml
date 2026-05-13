@@ -2,7 +2,7 @@
 # Copyright 2026 Embetrix Embedded Systems Solutions <ayoub.zaki@embetrix.com>
 # KAS configuration for building a avb enabled images with Yocto Project
 header:
-  version: 11
+  version: 14
 machine: "qemux86-64"
 distro: poky
 target:
@@ -10,17 +10,28 @@ target:
 repos:
   # It's current revision will be used to perform the build.
   meta-avb:
-  poky:
-    url: "https://git.yoctoproject.org/git/poky"
-    branch: scarthgap
-    path: "layers"
+  openembedded-core:
+    url: https://git.openembedded.org/openembedded-core.git
+    branch: wrynose
+    path: "layers/openembedded-core"
     layers:
       meta:
+  bitbake:
+    url: https://git.openembedded.org/bitbake.git
+    branch: "2.18"
+    path: "layers/bitbake"
+    layers:
+      bitbake: disabled
+  meta-yocto:
+    url: https://git.yoctoproject.org/meta-yocto.git
+    branch: wrynose
+    path: "layers/meta-yocto"
+    layers:
       meta-poky:
       meta-yocto-bsp:
   meta-openembedded:
     url: "https://github.com/openembedded/meta-openembedded.git"
-    branch: scarthgap
+    branch: wrynose
     path: "layers/meta-openembedded"
     layers:
       meta-oe:
@@ -28,7 +39,7 @@ local_conf_header:
   standard: |
     CONF_VERSION = "2"
     INHERIT += "rm_work"
-    EXTRA_IMAGE_FEATURES += "debug-tweaks"
+    IMAGE_FEATURES += "allow-empty-password allow-root-login serial-autologin-root empty-root-password"
   avb: |
     IMAGE_CLASSES += "avb-verity"
     IMAGE_FEATURES += "read-only-rootfs"
