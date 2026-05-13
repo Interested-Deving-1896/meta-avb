@@ -37,7 +37,7 @@ logger = logging.getLogger('wic')
 
 class AVBVerityPlugin(SourcePlugin):
 
-    name = 'rootfs-avb-verity'
+    name = 'rootfs_avb_verity'
 
     @staticmethod
     def __get_rootfs_dir(rootfs_dir):
