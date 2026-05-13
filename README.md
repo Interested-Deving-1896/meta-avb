@@ -110,10 +110,10 @@ directly.
 
 This layer depends on:
 
-- [meta (core)](https://git.yoctoproject.org/poky/log/?h=scarthgap)
-- [meta-oe (openembedded-layer)](https://github.com/openembedded/meta-openembedded/tree/scarthgap)
+- [openembedded-core (core)](https://git.openembedded.org/openembedded-core/log/?h=wrynose)
+- [meta-oe (openembedded-layer)](https://github.com/openembedded/meta-openembedded/tree/wrynose)
 
-Compatible with Yocto Project **Scarthgap** release.
+Compatible with Yocto Project **wrynose** release.
 
 ## Configuration
 
