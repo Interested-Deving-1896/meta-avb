@@ -34,5 +34,5 @@ do_install() {
         -e 's|@LIBDIR@|${libdir}|g' \
         -e 's|@INCLUDEDIR@|${includedir}|g' \
         -e 's|@VERSION@|${PV}|g' \
-        ${WORKDIR}/libavb.pc.in > ${D}${libdir}/pkgconfig/libavb.pc
+        ${UNPACKDIR}/libavb.pc.in > ${D}${libdir}/pkgconfig/libavb.pc
 }

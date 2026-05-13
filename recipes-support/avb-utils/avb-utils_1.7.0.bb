@@ -7,11 +7,9 @@ SRC_URI = " \
     git://github.com/embetrix/avb-utils.git;name=avb-utils;protocol=https;branch=master \
     "
 # tag: 1.7.0
-SRCREV= "b6d13b7f11ab7ad9f734c481efb7229523917da7"
+SRCREV = "b6d13b7f11ab7ad9f734c481efb7229523917da7"
 
 DEPENDS += "libavb python3-avbtool-native"
-
-S = "${WORKDIR}/git"
 
 inherit cmake pkgconfig
 
