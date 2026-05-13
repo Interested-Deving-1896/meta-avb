@@ -139,10 +139,12 @@ class AVBVerityPlugin(SourcePlugin):
         # When --fixed-size is set in WKS, the auto-sizing attributes
         # (extra_space, overhead_factor) are None — provide defaults.
         orig_fixed_size = part.fixed_size
-        orig_extra_space = part.extra_space
+        orig_extra_filesystem_space = part.extra_filesystem_space
+        orig_extra_partition_space = part.extra_partition_space
         orig_overhead_factor = part.overhead_factor
         part.fixed_size = 0
-        part.extra_space = part.extra_space or 0
+        part.extra_filesystem_space = part.extra_filesystem_space or 0
+        part.extra_partition_space = part.extra_partition_space or 0
         part.overhead_factor = part.overhead_factor or 1.0
 
         # dm-verity uses 4096-byte data blocks; for ext4 the filesystem
@@ -163,7 +165,8 @@ class AVBVerityPlugin(SourcePlugin):
 
         # Restore original values for the GPT partition entry
         part.fixed_size = orig_fixed_size
-        part.extra_space = orig_extra_space
+        part.extra_filesystem_space = orig_extra_filesystem_space
+        part.extra_partition_space = orig_extra_partition_space
         part.overhead_factor = orig_overhead_factor
         part.mkfs_extraopts = orig_mkfs_extraopts
 
